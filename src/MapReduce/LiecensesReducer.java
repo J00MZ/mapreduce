@@ -1,6 +1,7 @@
 package MapReduce;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.apache.hadoop.io.Text;
@@ -12,29 +13,42 @@ public class LiecensesReducer extends Reducer<Text, Text, Text, Text>  {
 	@Override
 	public void reduce(Text key, Iterable<Text> values, Context context)throws IOException, InterruptedException{
 		Iterator<Text> it=values.iterator();
-		Iterator<Text> it2=values.iterator();
-		String res = isExistMoreThanOne(it,it2);
-		if(res.compareTo("")!=0 ){
-			outText.set(res);
-			context.write(key, outText);
-		}
-	}
-	private String isExistMoreThanOne(	Iterator<Text>  it1,	Iterator<Text> it2){
-		 int i=0;
-		int j=0;
-		while (it1.hasNext())
+		ArrayList<String> arr1=new ArrayList<String>();
+		ArrayList<String> arr2=new ArrayList<String>();
+		while (it.hasNext())
 		{
-		  i++;
-		  String val =  it1.next().toString();
-		  while (it2.hasNext())
-			{
-			  j++;
-			  String val2 =  it2.next().toString();
-			  if(j != i && val.equals(val2) ){
-				  return val;
-			  }
-			}
+			String val =it.next().toString();
+			arr1.add(val);
+			arr2.add(val);
 		}
-		return "";
+		
+		isExistMoreThanOne(arr1,arr2,key,context);
+
+		
 	}
+	private void isExistMoreThanOne(ArrayList<String> arr1,ArrayList<String> arr2,Text key,Context context) throws IOException, InterruptedException{
+		ArrayList<String>toWrite=new ArrayList<String>();
+		for(int i = 0;i< arr1.size();i++){
+			 String val1 =  arr1.get(i);
+			for(int j = 0;j< arr2.size();j++){
+				String val2 =  arr2.get(j);
+				 if(j != i && val1.equals(val2) ){
+					
+					
+					  if(!toWrite.contains(val1)){
+						  toWrite.add(val1);
+					  }
+						
+				  }
+			}
+			
+			
+		}
+		for(int c = 0;c< toWrite.size();c++){
+			  outText.set(toWrite.get(c));
+		     context.write(key, outText);
+		}
+	
+	}
+	
 }
